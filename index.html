@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="EN">
+<head>
+    <meta charset="utf-8" />
+    <title>Restaurant Menu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        #menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        .menu-item {
+            width: 48%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        .menu-item h3 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .menu-item .price {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .menu-item .quantity {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-item .quantity input {
+            width: 30px;
+            text-align: center;
+            margin: 0 5px;
+        }
+
+        #place-order {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        #place-order:hover {
+            background-color: #0056b3;
+        }
+
+        #report {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .menu-item {
+                width: 100%;
+            }
+
+            #place-order {
+                bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>Restaurant Menu</header>
+    <div id="menu">
+        <div class="menu-item" data-item="Passion Fruit" data-price="35">
+            <h3>Passion Fruit</h3>
+            <div class="price">₹35</div>
+            <div class="quantity">
+                <button class="minus">-</button>
+                <input type="number" value="0" min="0" />
+                <button class="plus">+</button>
+            </div>
+        </div>
+        <div class="menu-item" data-item="Blue Berry" data-price="35">
+            <h3>Blue Berry</h3>
+            <div class="price">₹35</div>
+            <div class="quantity">
+                <button class="minus">-</button>
+                <input type="number" value="0" min="0" />
+                <button class="plus">+</button>
+            </div>
+        </div>
+        <div class="menu-item" data-item="Oreo" data-price="35">
+            <h3>Oreo</h3>
+            <div class="price">₹35</div>
+            <div class="quantity">
+                <button class="minus">-</button>
+                <input type="number" value="0" min="0" />
+                <button class="plus">+</button>
+            </div>
+        </div>
+        <div class="menu-item" data-item="Malai kulfi" data-price="40">
+            <h3>Malai kulfi</h3>
+            <div class="price">₹40</div>
+            <div class="quantity">
+                <button class="minus">-</button>
+                <input type="number" value="0" min="0" />
+                <button class="plus">+</button>
+            </div>
+        </div>
+        <div class="menu-item" data-item="Water melon (water based)" data-price="15">
+            <h3>Water melon (water based)</h3>
+            <div class="price">₹15</div>
+            <div class="quantity">
+                <button class="minus">-</button>
+                <input type="number" value="0" min="0" />
+                <button class="plus">+</button>
+            </div>
+        </div>
+        <div class="menu-item" data-item="Grape (water based)" data-price="15">
+            <h3>Grape (water based)</h3>
+            <div class="price">₹15</div>
+            <div class="quantity">
+                <button class="minus">-</button>
+                <input type="number" value="0" min="0" />
+                <button class="plus">+</button>
+            </div>
+        </div>
+        <div class="menu-item" data-item="Pineapple (water based)" data-price="15">
+            <h3>Pineapple (water based)</h3>
+            <div class="price">₹15</div>
+            <div class="quantity">
+                <button class="minus">-</button>
+                <input type="number" value="0" min="0" />
+                <button class="plus">+</button>
+            </div>
+        </div>
+    </div>
+    <button id="place-order" disabled>Place Order</button>
+    <div id="report">
+        <button id="generate-report">Generate Report</button>
+        <div id="report-content"></div>
+    </div>
+    <script>
+        const items = document.querySelectorAll(".menu-item");
+        const placeOrderBtn = document.getElementById("place-order");
+        const generateReportBtn = document.getElementById("generate-report");
+        const reportContent = document.getElementById("report-content");
+        let order = {
+            orderId: uuidv4(),
+            items: {},
+            totalAmount: 0,
+            dateTime: new Date().toISOString(),
+        };
+        let orders = [];
+
+        function updateOrder(item, quantity) {
+            const itemPrice = parseInt(item.getAttribute("data-price"));
+            const itemName = item.getAttribute("data-item");
+            const itemTotal = itemPrice * quantity;
+
+            order.items[itemName] = {
+                itemName,
+                price: itemPrice,
+                quantity,
+            };
+
+            order.totalAmount += itemTotal;
+        }
+
+        function updatePlaceOrderBtn() {
+            const hasItems = Object.keys(order.items).length > 0;
+            placeOrderBtn.disabled = !hasItems;
+        }
+
+        function updateReportContent() {
+            let reportHTML = "<h3>Report</h3>";
+            let totalSales = 0;
+            const itemsSold = {};
+
+            orders.forEach((order) => {
+                totalSales += order.totalAmount;
+                Object.keys(order.items).forEach((itemName) => {
+                    const item = order.items[itemName];
+                    if (!itemsSold[itemName]) {
+                        itemsSold[itemName] = {
+                            itemName,
+                            quantity: item.quantity,
+                            sales: item.quantity * item.price,
+                        };
+                    } else {
+                        itemsSold[itemName].quantity += item.quantity;
+                        itemsSold[itemName].sales += item.quantity * item.price;
+                    }
+                });
+            });
+
+            reportHTML += `<div>Total Sales: ₹${totalSales}</div>`;
+            reportHTML += "<ul>";
+
+            Object.keys(itemsSold).forEach((itemName) => {
+                const item = itemsSold[itemName];
+                reportHTML += `<li>${item.itemName}: Sold ${item.quantity} units for ₹${item.sales}</li>`;
+            });
+
+            reportHTML += "</ul>";
+            reportContent.innerHTML = reportHTML;
+        }
+
+        items.forEach((item) => {
+            const quantityInput = item.querySelector('input[type="number"]');
+            const plusBtn = item.querySelector(".plus");
+            const minusBtn = item.querySelector(".minus");
+
+            plusBtn.addEventListener("click", () => {
+                const quantity = parseInt(quantityInput.value);
+                quantityInput.value = quantity + 1;
+                updateOrder(item, quantity + 1);
+                updatePlaceOrderBtn();
+            });
+
+            minusBtn.addEventListener("click", () => {
+                const quantity = parseInt(quantityInput.value);
+                if (quantity > 0) {
+                    quantityInput.value = quantity - 1;
+                    updateOrder(item, quantity - 1);
+                } else {
+                    delete order.items[item.getAttribute("data-item")];
+                }
+                updatePlaceOrderBtn();
+            });
+
+            quantityInput.addEventListener("input", () => {
+                const quantity = parseInt(quantityInput.value);
+                updateOrder(item, quantity);
+                updatePlaceOrderBtn();
+            });
+        });
+
+        placeOrderBtn.addEventListener("click", () => {
+            if (Object.keys(order.items).length > 0) {
+                orders.push(order);
+                firebase.firestore().collection("orders").add(order);
+                order = {
+                    orderId: uuidv4(),
+                    items: {},
+                    totalAmount: 0,
+                    dateTime: new Date().toISOString(),
+                };
+                updatePlaceOrderBtn();
+            }
+        });
+
+        generateReportBtn.addEventListener("click", () => {
+            updateReportContent();
+        });
+    </script>
+</body>
+
+</html>
